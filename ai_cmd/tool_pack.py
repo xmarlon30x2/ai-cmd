@@ -1,5 +1,6 @@
 from json import JSONDecodeError, dumps, loads
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict, List, Tuple, TypedDict
+from typing import (TYPE_CHECKING, Any, Callable, Coroutine, Dict, List, Tuple,
+                    TypedDict)
 
 from .specs import FunctionSpec
 from .types import ToolMessage
@@ -58,7 +59,7 @@ class ToolPack:
             case _:
                 raise KeyError(f'Tipo de herramienta "{tool_call.type}" no es valido')
         return ToolMessage(
-            content=dumps(content),
+            content=dumps(content, ensure_ascii=True),
             tool_call_id=tool_call.id,
             name=tool_call.function.name,
         )
@@ -89,4 +90,4 @@ class ToolPack:
 
     async def reset(self) -> Any:
         """Reinicia el paquete de herramientas"""
-        raise NotImplementedError()
+        pass

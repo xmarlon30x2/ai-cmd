@@ -17,8 +17,9 @@ class FilesPack(ToolPack):
         Returns:
             dict: Un diccionario con el contenido del archivo en la clave 'content' o un mensaje de error en la clave 'error'.
         """
+        self.app.console.print(f"[yellow]Leyendo [italic]{path}[/italic][/yellow]")
         try:
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 content = f.read()
             return {"content": content}
         except OSError as e:
@@ -36,7 +37,7 @@ class FilesPack(ToolPack):
             dict: Un diccionario con un mensaje de éxito en la clave 'message' o un mensaje de error en la clave 'error'.
         """
         try:
-            with open(path, "w") as f:
+            with open(path, "w", encoding="utf-8") as f:
                 f.write(content)
             return {"message": f"File {path} written successfully"}
         except OSError as e:
@@ -69,7 +70,7 @@ class FilesPack(ToolPack):
             dict: Un diccionario con el número de líneas en la clave 'line_count' o un mensaje de error en la clave 'error'.
         """
         try:
-            with open(path, "r") as f:
+            with open(path, "r", encoding='utf-8') as f:
                 line_count = sum(1 for _ in f)
             return {"line_count": line_count}
         except OSError as e:

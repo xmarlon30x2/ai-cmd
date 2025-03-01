@@ -1,8 +1,7 @@
-from contextlib import redirect_stdout
-from io import StringIO
 from typing import Any
 
-import pip
+
+from ..executors import PythonProgram
 
 from ..tool_pack import ToolPack
 
@@ -12,75 +11,66 @@ class PythonPack(ToolPack):
 
     def __init__(self):
         super().__init__()
-        self.globals = {}
+        self.programs: dict[str, tuple[str, PythonProgram]] = {}
 
-    async def tool_reset(self, confirm: bool):
-        """Reinicia las variables globales"""
+    async def tool_execute(self, code: str, description: str):
+        """
+        Ejecuta codigo python en un subproceso
+        args:
+            code: Codigo python a ejecutar
+            description: Descripcion breve del codigo
+        """
+        try:
+            program = PythonProgram(code=code)
+            program.start()
+            self.programs[program.id] = (description, program)
+            return {"id": program.id}
+        except Exception as exc:
+            return {"error": str(exc)}
+
+    async def tool_list(self, confirm: bool) -> dict[Any, Any]:
+        """Muestar la lista de programas python disponibles"""
         if not confirm:
             return {"success": False}
-        self.globals = {"app": self.app}
-        return {"success": True}
+        return {
+            "programs": [
+                {"id": id, "description": desc, "return_code": prog.return_code}
+                for (id, (desc, prog)) in self.programs.items()
+            ]
+        }
 
-    async def tool_exec(self, code: str):
-        """Ejecuta código Python en el entorno global directamente en la PC del usuario.
-
-        Args:
-            code (str): El código Python a ejecutar.
-
-        Returns:
-            dict: Un diccionario con la salida estándar (stdout) del código ejecutado en la clave 'stdout'.
-                  Si ocurre un error, también incluye las claves 'error' (el mensaje de error) y 'type_error' (el tipo de error).
+    async def tool_comunicate(self, id: str, input: str = "", timeout: float = 0):
         """
-        stdout = StringIO()
-        executor = exec
-        try:
-            with redirect_stdout(stdout):
-                executor(code, self.globals)
-            return {"stdout": stdout.getvalue()}
-        except Exception as exc:
-            return {
-                "stdout": stdout.getvalue(),
-                "error": str(exc),
-                "type_error": type(exc).__name__,
-            }
-
-    async def tool_eval(self, code: str) -> Any:
-        """Evalúa una expresión Python en el entorno global directamente en la PC del usuario.
-
-        Args:
-            expresion (str): La expresión Python a evaluar.
-
-        Returns:
-            dict: Un diccionario con la salida estándar (stdout) en la clave 'stdout' y el resultado de la evaluación en la clave 'value'.
-                  Si ocurre un error, también incluye las claves 'error' (el mensaje de error) y 'type_error' (el tipo de error).
+        Interactua con un codigo python en ejecucion, enviando datos al stdin,
+        espera a que el proceso termine y lee datos del stdout y stderr.
+        args:
+            id: La id del codigo en ejecucion
+            input: El texto que se enviara al stdin, es opcional.
+            timeout: El tiempo maximo de espera para que el proceso termine, utiliza 0 para indicar tiempo indefinido
         """
-        stdout = StringIO()
-        executor = eval
-        try:
-            with redirect_stdout(stdout):
-                value = executor(code, self.globals)
-            return {"stdout": stdout.getvalue(), "value": value}
-        except Exception as exc:
-            return {
-                "stdout": stdout.getvalue(),
-                "error": str(exc),
-                "type_error": type(exc).__name__,
-            }
+        data = self.programs.pop(id)
+        if data:
+            _, program = data
+            try:
+                stdin, stdout = program.comunicate(
+                    input=input if input != "" else None,
+                    timeout=timeout if timeout != 0 else None,
+                )
+            except Exception as exc:
+                return {"error": str(exc)}
+            else:
+                return {"stdin": stdin, "stdout": stdout}
+        else:
+            return {"error": f'ID "{id}" no encontrada'}
 
-    async def _tool_pip(self, args: list[str]):
-        """Utiliza pip mediante argumentos
-
-        Args:
-            args (list): Lista de argumentos, por ejemplo ['install', 'package']
-
-        """
-        stdout = StringIO()
-        try:
-            with redirect_stdout(stdout):
-                pip.main(args)
-            return {"stdout": stdout.getvalue()}
-        except Exception as exc:
-            return {
-                "stdout": stdout.getvalue(),
-                "error": str(exc),
-            }
+    async def tool_kill(self, id: str):
+        """Fuerza el cierre de un programa python en ejecucion"""
+        data = self.programs.pop(id)
+        if data:
+            _, program = data
+            try:
+                program.kill()
+            except Exception as exc:
+                return {"error": str(exc)}
+        else:
+            return {"error": f'ID "{id}" no encontrada'}

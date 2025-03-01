@@ -1,8 +1,10 @@
 ### en desarrollo ###
 from typing import Any, Dict
 
+from ai_cmd.tool_pack import ToolPack
 
-class DisplayPack:
+
+class DisplayPack(ToolPack):
     name = "display"
 
     async def tool_capture_screen(
@@ -87,7 +89,7 @@ class DisplayPack:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    async def tool_write(self, text: str) -> Dict[str, Any]:
+    async def tool_keyboard_write(self, text: str) -> Dict[str, Any]:
         """Escribe el texto especificado.
 
         Args:

@@ -1,17 +1,21 @@
+### en desarrollo ###
 from typing import Any, Dict, List, Optional
 
-from ..tool_pack import ToolPack
-from ..engine import Engine
 from ai_cmd.types import AssistantMessage, UserMessage
-from ...ai import AI
-from ...tool_handler import ToolHandler
-from rich.console import Console
+
+from ..engine import Engine
+from ..tool_pack import ToolPack
 
 
 class IAPack(ToolPack):
     name = "ia"
 
-    def __init__(self, engine: Engine, system_message: str, start_messages: Optional[List[Dict[str, str]]] = None):
+    def __init__(
+        self,
+        engine: Engine,
+        system_message: str,
+        start_messages: Optional[List[Dict[str, str]]] = None,
+    ):
         super().__init__()
         self.engine = engine
         self.system_message = system_message
@@ -28,12 +32,21 @@ class IAPack(ToolPack):
             o un mensaje de error si la confirmación es falsa.
         """
         if not confirm:
-            return {"success": False, "message": "Se requiere confirmación para reiniciar el chat."}
+            return {
+                "success": False,
+                "message": "Se requiere confirmación para reiniciar el chat.",
+            }
 
-        self.engine = Engine(ai=self.engine.ai, console=self.engine.console, tool_handler=self.engine.tool_handler)
+        self.engine = Engine(
+            ai=self.engine.ai,
+            console=self.engine.console,
+            tool_handler=self.engine.tool_handler,
+        )
         return {"success": True, "message": "Chat reiniciado."}
 
-    async def tool_talk(self, content: str, role: Optional[str] = None) -> Dict[str, str]:
+    async def tool_talk(
+        self, content: str, role: Optional[str] = None
+    ) -> Dict[str, str]:
         """Envia un mensaje a la IA.
 
         Args:
@@ -49,9 +62,9 @@ class IAPack(ToolPack):
                 return {"role": "assistant", "content": msg.content}
         return {"role": "assistant", "content": "No se generó respuesta."}
 
-    async def tool_retry(self, confirm: bool) -> Dict[str, str]:
+    async def tool_retry(self, confirm: bool) -> Dict[str, Any]:
         """Reintenta la respuesta del modelo en caso de haber perdido la conexión.
-        
+
         Args:
             confirm: Confirmación para reintentar el último mensaje.
 
@@ -60,7 +73,10 @@ class IAPack(ToolPack):
             si no hay mensajes previos del usuario para reintentar o si la confirmación es falsa.
         """
         if not confirm:
-            return {"success": False, "message": "Se requiere confirmación para reintentar el último mensaje."}
+            return {
+                "success": False,
+                "message": "Se requiere confirmación para reintentar el último mensaje.",
+            }
 
         last_user_message = None
         for msg in reversed(self.engine.messages):

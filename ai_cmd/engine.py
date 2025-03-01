@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from .ai import AI
     from .tool_handler import ToolHandler
     from .types import Message, Tool
-    
+
 
 DEFAULT_SYSTEM_MESSAGE = "Eres un poderoso asistente de IA, tu deber es ayudar \
     al usuario de la manera mas autonoma posible. Tienes una gra variedad de \
@@ -24,12 +24,20 @@ DEFAULT_SYSTEM_MESSAGE = "Eres un poderoso asistente de IA, tu deber es ayudar \
     recuera siempre intentar ser los mas autonomo posible. Tienes acceso total a \
     la PC del usario, utiliza eso y piensa fuera de la caja"
 
+
 class Engine:
-    def __init__(self, ai: "AI", console: "Console", tool_handler: "ToolHandler"):
+    def __init__(
+        self, ai: "AI", console: "Console", tool_handler: "ToolHandler | None" = None
+    ):
         self.console = console
-        self.messages: List[Message] = [SystemMessage(content=DEFAULT_SYSTEM_MESSAGE)]
         self.tool_handler = tool_handler
         self.ai = ai
+        self.messages: List[Message] = [SystemMessage(content=DEFAULT_SYSTEM_MESSAGE)]
+
+    async def reset(self):
+        if self.tool_handler:
+            await self.tool_handler.reset()
+        self.messages: List[Message] = [SystemMessage(content=DEFAULT_SYSTEM_MESSAGE)]
 
     async def generate(self, content: str) -> None:
         message = UserMessage(content=content)
@@ -51,7 +59,7 @@ class Engine:
         completion = self.ai.chat(messages=self.messages, tools=tools)
         self.current_message_assistant = AssistantMessage()
         self.messages.append(self.current_message_assistant)
-        self.index = len(self.messages)-1
+        self.index = len(self.messages) - 1
         self.live = Live(console=self.console, auto_refresh=False)
         try:
             async for token in completion:
@@ -63,7 +71,7 @@ class Engine:
                         has_next_step = True
         except ConnectionError as exc:
             self.console.print(
-                f"[red]⛔ No hemos podido establecer conexion con el modelo. Por favor revisa su conexion a internet.[/red]"
+                f"[red]⛔ Error de conexion[/red]\n[gray]{str(exc)}[/gray]"
             )
         except Exception as exc:
             exception = "\n".join(format_exception(exc))
@@ -75,11 +83,13 @@ class Engine:
             if self.live.is_started:
                 self.live.stop()
         if self.current_message_assistant.content == "":
-            self.current_message_assistant.content="ok"    
+            self.current_message_assistant.content = "ok"
         return has_next_step
 
     async def get_tools(self) -> List["Tool"]:
-        return await self.tool_handler.specs()
+        if self.tool_handler:
+            return await self.tool_handler.specs()
+        return []
 
     async def add_content(self, *, content: str) -> None:
         self.messages[self.index].content += content
@@ -90,7 +100,7 @@ class Engine:
     async def add_tools_calls(self, *, tools_calls: List["ToolCall"]) -> bool:
         if self.live.is_started:
             self.live.stop()
-        if len(tools_calls) == 0:
+        if len(tools_calls) == 0 or not self.tool_handler:
             return False
         if not self.current_message_assistant.tool_calls:
             self.current_message_assistant.tool_calls = []
@@ -109,5 +119,5 @@ class Engine:
                 tool_message = await self.tool_handler.execute(tool_call)
                 self.messages.append(tool_message)
                 progress.update(task, completed=True)
-        self.console.print("\n\n")
+        self.console.print("\n")
         return True

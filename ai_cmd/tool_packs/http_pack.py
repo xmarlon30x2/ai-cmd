@@ -13,24 +13,25 @@ class HttpPack(ToolPack):
         self,
         url: str,
         method: str = "get",
-        headers: dict[str, str] = None,  # type: ignore
         data: str = None,  # type: ignore
     ) -> Dict[str, Any]:
         """
         Args:
             url (str): La URL a la que hacer la petición.
             method (str): El método HTTP a utilizar (get, post, put, delete). Por defecto, 'get'.
-            headers (dict): Un diccionario de cabeceras HTTP a enviar con la petición. Por defecto, None.
             data (str): Un json de datos a enviar con la petición (para métodos post y put). Por defecto, None.
 
         Returns:
             dict: Un diccionario con el código de estado HTTP en la clave 'status_code' y el contenido de la respuesta en la clave 'content'.
                   Si ocurre un error, devuelve un diccionario con un mensaje de error en la clave 'error'.
         """
+        # headers: dict[str, str] = None,  # type: ignore
+        # headers (dict): Un diccionario de cabeceras HTTP a enviar con la petición. Por defecto, None.
         try:
             method = method.lower()
-            if headers is None:  # type: ignore
-                headers = {"User-Agent": "Mozilla/5.0"}
+            # if headers is None:  # type: ignore
+            #    headers = {"User-Agent": "Mozilla/5.0"}
+            headers = {"User-Agent": "Mozilla/5.0"}
 
             if method == "get":
                 response = requests.get(url, headers=headers)

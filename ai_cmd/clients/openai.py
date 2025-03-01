@@ -26,16 +26,15 @@ class OpenAI(AI):
         delta_tools_calls: List["ChoiceDeltaToolCall"] = []
         try:
             async for chunk in await self._create_chat(messages, tools):
-                if not chunk: continue
+                if not chunk:
+                    continue
                 delta = chunk.choices[0].delta
                 if delta.content:
                     yield ContentToken(content=delta.content)
                 if delta.tool_calls:
                     await self._collecte_tool_calls(delta_tools_calls, delta.tool_calls)
         except APIConnectionError as exc:
-            raise ConnectionError(
-                "Error al establecer la conexion con el modelo"
-            ) from exc
+            raise ConnectionError("Por favor revise su conexion a internet") from exc
         if len(delta_tools_calls):
             yield ToolsCallsToken(
                 tools_calls=await ToolCallMapper.to_domain_list(delta_tools_calls),

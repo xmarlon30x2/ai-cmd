@@ -38,6 +38,8 @@ class App:
             while self.running:
                 command = await self.prompt()
                 await self.process(command=command)
+        except KeyboardInterrupt:
+            pass
         except (EOFError, AppClose):
             self.running = False
         finally:
