@@ -5,7 +5,9 @@ from ..pack import Pack
 
 
 class IAConfigPack(Pack):
-    def do_model(self, model: Optional[str], temperature: Optional[float]):
+    def do_model(
+        self, model: Optional[str] = None, temperature: Optional[float] = None
+    ):
         """Muestra ayuda sobre los comandos"""
         if model:
             self.app.engine.ai.model = model
@@ -20,7 +22,7 @@ class IAConfigPack(Pack):
                     f'model=[bold]"{self.app.engine.ai.model}"[/bold]'
                 )
 
-    def do_client(self, api_key: Optional[str], base_url: Optional[str]):
+    def do_client(self, api_key: Optional[str] = None, base_url: Optional[str] = None):
         """Muestra ayuda sobre los comandos"""
         if api_key:
             if isinstance(self.app.engine.ai, OpenAI):
