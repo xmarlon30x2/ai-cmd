@@ -5,10 +5,9 @@ from typing import TYPE_CHECKING, List
 import dotenv
 from rich.console import Console
 
-from ai_cmd.clients.mockai import MockAI
-
 from .actions import Actions
 from .app import App
+from .clients.openai import OpenAI
 from .commands.ai_config import IAConfigPack
 from .commands.base import BasePack
 from .engine import Engine
@@ -24,7 +23,7 @@ if TYPE_CHECKING:
 
 async def main():
     dotenv.load_dotenv("app.env")
-    # api_key = getenv("api_key") or ""
+    api_key = getenv("api_key") or ""
     model = getenv("model") or "deepseek"
     base_url = getenv("base_url") or "https://deepseek.com/"
     temperature = getenv("temperature")
@@ -33,10 +32,9 @@ async def main():
     console.print(
         f"[green]Usando [bold]{model}[/bold] en {base_url} con {temperature} [/green]"
     )
-    # ai = OpenAI(
-    #     api_key=api_key, base_url=base_url, model=model, temperature=temperature
-    # )
-    ai = MockAI(model=model, temperature=temperature)
+    ai = OpenAI(
+        api_key=api_key, base_url=base_url, model=model, temperature=temperature
+    )
     tool_packs: List["ToolPack"] = [FilePack(console=console), PythonPack(), OSPack()]
     tool_handler = ToolHandler(tool_packs=tool_packs)
     engine = Engine(console=console, ai=ai, tool_handler=tool_handler)
