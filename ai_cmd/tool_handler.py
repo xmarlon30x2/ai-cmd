@@ -2,9 +2,12 @@ from asyncio import Lock
 from json import dumps
 from typing import TYPE_CHECKING, List, Optional
 
+from .types import ToolCall, ToolMessage
+
 if TYPE_CHECKING:
+    from .app import App
     from .tool_pack import ToolPack
-    from .types import Tool, ToolCall, ToolMessage
+    from .types import Tool
 
 
 class ToolHandler:
@@ -13,6 +16,11 @@ class ToolHandler:
     def __init__(self, tool_packs: Optional[List["ToolPack"]] = None) -> None:
         self._tool_packs = tool_packs or []
         self._tool_packs_lock = Lock()
+
+    async def bind(self, app: "App"):
+        self.app = app
+        for tool_pack in self._tool_packs:
+            await tool_pack.bind(app)
 
     async def add(self, tool_packs: List["ToolPack"]):
         """Agrega paquetes de herramientas"""
@@ -47,25 +55,22 @@ class ToolHandler:
                                 tool_pack = element
                                 break
                     if not tool_pack:
-                        tool_message: "ToolMessage" = {
-                            "content": dumps(
+                        return ToolMessage(
+                            content=dumps(
                                 {
                                     "error": f"Herramienta '{tool_call.function.name}' no registrada"
                                 }
                             ),
-                            "name": "error_handler",
-                            "role": "tool",
-                            "tool_call_id": tool_call.id,
-                        }
-                        return tool_message
+                            name="error_handler",
+                            tool_call_id=tool_call.id,
+                        )
                     return await tool_pack.execute(tool_call)
         except Exception as exc:
-            return {
-                "content": dumps({"error": f"Error procesando tool_call: {str(exc)}"}),
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "name": "error_handler",
-            }
+            return ToolMessage(
+                content=dumps({"error": f"Error procesando tool_call: {str(exc)}"}),
+                tool_call_id=tool_call.id,
+                name="error_handler",
+            )
 
     async def reset(self) -> None:
         """Reinicia todas las herramientas"""

@@ -1,42 +1,78 @@
-from typing import Optional
-from ajent.model import Model
+from typing import Any, Dict, List, Optional
 
 from ..tool_pack import ToolPack
+from ..engine import Engine
+from ai_cmd.types import AssistantMessage, UserMessage
+from ...ai import AI
+from ...tool_handler import ToolHandler
+from rich.console import Console
 
 
 class IAPack(ToolPack):
-    def __init__(self, name:str, model:Model, system_message:str, start_messages = None):
-        self.name = name
-        self.model = model
-        self.start_messages = start_messages
+    name = "ia"
+
+    def __init__(self, engine: Engine, system_message: str, start_messages: Optional[List[Dict[str, str]]] = None):
+        super().__init__()
+        self.engine = engine
         self.system_message = system_message
-        self.messages = [{'role':'system', 'content': self.system_message}, *(self.start_messages or [])]
+        self.start_messages = start_messages or []
 
-    def _get_tools_funcs(self):
-        return {key[3:]:getattr(self, key) for key in dir(self) if key.startswith('do_')}
+    async def tool_reset(self, confirm: bool) -> Dict[str, Any]:
+        """Reinicia el chat con la IA.
 
-    async def do_reset(self):
-        """Reinicia el chat con la IA."""
-        self.messages = [{'role':'system', 'content': self.system_message}, *(self.start_messages or [])]
-        await self.model.reset()
-        return {'success': True}
-    
-    async def do_talk(self, content:str, role:Optional[str]=None):
+        Args:
+            confirm: Confirmación para reiniciar el chat.
+
+        Returns:
+            Un diccionario con un mensaje de éxito si el chat se reinicia,
+            o un mensaje de error si la confirmación es falsa.
         """
-        Manda un mensaje a la IA
-        args:
-            role: El rol con el que enviaras el mensaje, puede ser: system|user
-            content: El contenido del mensaje a enviar
+        if not confirm:
+            return {"success": False, "message": "Se requiere confirmación para reiniciar el chat."}
+
+        self.engine = Engine(ai=self.engine.ai, console=self.engine.console, tool_handler=self.engine.tool_handler)
+        return {"success": True, "message": "Chat reiniciado."}
+
+    async def tool_talk(self, content: str, role: Optional[str] = None) -> Dict[str, str]:
+        """Envia un mensaje a la IA.
+
+        Args:
+            content: El contenido del mensaje a enviar.
+            role: El rol con el que enviar el mensaje, puede ser: system|user. Por defecto, 'user'.
+
+        Returns:
+            El último mensaje generado por el asistente.
         """
-        self.messages.append({ 'content':content, role:role or 'user'})
-        return await self._generate()
+        await self.engine.generate(content)
+        for msg in reversed(self.engine.messages):
+            if isinstance(msg, AssistantMessage):
+                return {"role": "assistant", "content": msg.content}
+        return {"role": "assistant", "content": "No se generó respuesta."}
 
-    async def do_retry(self):
-        """Reintenta la respuesta del modelo en caso de haber perdido la conexion"""
-        return await self._generate()
+    async def tool_retry(self, confirm: bool) -> Dict[str, str]:
+        """Reintenta la respuesta del modelo en caso de haber perdido la conexión.
+        
+        Args:
+            confirm: Confirmación para reintentar el último mensaje.
 
-    async def _generate(self):
-        message = await self.model.generate(self.messages)
-        self.messages.append(message)
-        return message
- 
+        Returns:
+            El último mensaje generado por el asistente, o un mensaje de error
+            si no hay mensajes previos del usuario para reintentar o si la confirmación es falsa.
+        """
+        if not confirm:
+            return {"success": False, "message": "Se requiere confirmación para reintentar el último mensaje."}
+
+        last_user_message = None
+        for msg in reversed(self.engine.messages):
+            if isinstance(msg, UserMessage):
+                last_user_message = msg.content
+                break
+
+        if last_user_message:
+            await self.engine.generate(last_user_message)
+            for msg in reversed(self.engine.messages):
+                if isinstance(msg, AssistantMessage):
+                    return {"role": "assistant", "content": msg.content}
+            return {"role": "assistant", "content": "No se generó respuesta."}
+        else:
+            return {"message": "No hay mensajes previos del usuario para reintentar."}

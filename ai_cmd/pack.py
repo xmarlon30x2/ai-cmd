@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 class Pack(ABC):
-    def bind(self, app: "App"):
+    async def bind(self, app: "App"):
         self.app = app
 
     async def exists(self, *, action: str) -> bool:

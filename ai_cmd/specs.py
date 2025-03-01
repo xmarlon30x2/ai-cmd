@@ -1,13 +1,11 @@
 """Specs"""
 
 import inspect
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from .mappers import TypeToJSONSchemaMapper
 from .parsers import DocstringParser
-
-if TYPE_CHECKING:
-    from .types import Tool
+from .types import FunctionDefinition, Tool
 
 
 class FunctionSpec:
@@ -19,7 +17,7 @@ class FunctionSpec:
         func: Callable[..., Any],
         custom_name: Optional[str] = None,
         custom_desc: Optional[str] = None,
-    ) -> "Tool":
+    ) -> Tool:
         """Genera la especificación completa para una herramienta"""
         sig = inspect.signature(func)
         base_desc, param_docs = DocstringParser.parse(inspect.getdoc(func) or "")
@@ -38,11 +36,11 @@ class FunctionSpec:
 
             if param.default == inspect.Parameter.empty:
                 parameters["required"].append(name)
-        return {
-            "type": "function",
-            "function": {
-                "name": custom_name or func.__name__,
-                "description": custom_desc or base_desc,
-                "parameters": parameters,
-            },
-        }
+        
+        return Tool(
+            function=FunctionDefinition(
+                name=custom_name or func.__name__,
+                description=custom_desc or base_desc,
+                parameters=parameters,
+            )
+        )

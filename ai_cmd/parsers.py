@@ -40,13 +40,12 @@ class DocstringParser:
 
             elif not current_section:
                 description.append(line)
-
         return " ".join(description).strip(), params
 
     @classmethod
     def _is_section_header(cls, line: str) -> bool:
         return any(
-            line.lower().startswith(f"{header}:")
+            line.lower().strip().startswith(f"{header}:")
             for headers in cls.SECTION_HEADERS.values()
             for header in headers
         )
@@ -54,7 +53,7 @@ class DocstringParser:
     @classmethod
     def _identify_section(cls, line: str) -> Optional[str]:
         for section, headers in cls.SECTION_HEADERS.items():
-            if any(line.lower().startswith(f"{header}:") for header in headers):
+            if any(line.lower().strip().startswith(f"{header}:") for header in headers):
                 return section
         return None
 
@@ -62,5 +61,5 @@ class DocstringParser:
     def _parse_param_line(line: str) -> tuple[str, str]:
         if ":" in line:
             param, desc = map(str.strip, line.split(":", 1))
-            return param, desc
+            return param.split(" ")[0], desc
         return "", ""

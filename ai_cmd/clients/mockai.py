@@ -2,7 +2,7 @@ from typing import Any, AsyncGenerator
 from uuid import uuid4
 
 from ..ai import AI
-from ..types import ContentToken, FunctionCall, Token, ToolCall, ToolsToken
+from ..types import ContentToken, FunctionCall, Token, ToolCall, ToolsCallsToken
 
 
 class MockAI(AI):
@@ -16,7 +16,7 @@ class MockAI(AI):
             self.flag = 1
             yield ContentToken(type="content", content="Hola")
             yield ContentToken(type="content", content=" como")
-            yield ToolsToken(
+            yield ToolsCallsToken(
                 type="tools",
                 tools_calls=[
                     ToolCall(

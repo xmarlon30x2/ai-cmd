@@ -1,30 +1,17 @@
 from typing import TYPE_CHECKING, Any, AsyncGenerator, List
 
-from openai import AsyncOpenAI
+from openai import APIConnectionError, AsyncOpenAI
+
+from ai_cmd.exceptions import ConnectionError
 
 from ..ai import AI
+from ..mappers import MessageMapper, ToolCallMapper, ToolMapper
+from ..types import ContentToken, ToolsCallsToken
 
 if TYPE_CHECKING:
     from openai.types.chat.chat_completion_chunk import ChoiceDeltaToolCall
-    from openai.types.chat.chat_completion_message_param import (
-        ChatCompletionMessageParam,
-    )
-    from openai.types.chat.chat_completion_tool_param import ChatCompletionToolParam
 
-    from ..types import (
-        ContentToken,
-        FunctionCall,
-        Message,
-        Token,
-        Tool,
-        ToolCall,
-        ToolsToken,
-    )
-
-
-class _DefaultFunction:
-    name = "unknow"
-    arguments = ""
+    from ..types import Message, Token, Tool
 
 
 class OpenAI(AI):
@@ -37,57 +24,36 @@ class OpenAI(AI):
         self, messages: List["Message"], tools: List["Tool"]
     ) -> AsyncGenerator["Token", None]:
         delta_tools_calls: List["ChoiceDeltaToolCall"] = []
-        async for chunk in await self._create(messages, tools):
-            delta = chunk.choices[0].delta
-            if delta.content:
-                yield ContentToken(type="content", content=delta.content)
-            if delta.tool_calls:
-                await self._collecte_tool_calls(delta_tools_calls, delta.tool_calls)
+        try:
+            async for chunk in await self._create_chat(messages, tools):
+                if not chunk: continue
+                delta = chunk.choices[0].delta
+                if delta.content:
+                    yield ContentToken(content=delta.content)
+                if delta.tool_calls:
+                    await self._collecte_tool_calls(delta_tools_calls, delta.tool_calls)
+        except APIConnectionError as exc:
+            raise ConnectionError(
+                "Error al establecer la conexion con el modelo"
+            ) from exc
         if len(delta_tools_calls):
-            yield ToolsToken(
-                type="tools",
-                tools_calls=await self._map_to_domain_tools(delta_tools_calls),
+            yield ToolsCallsToken(
+                tools_calls=await ToolCallMapper.to_domain_list(delta_tools_calls),
             )
 
-    async def _map_to_openai_messages(
-        self, messages: List["Message"]
-    ) -> List['ChatCompletionMessageParam']:
-        return messages  # type: ignore
-
-    async def _map_to_openai_tools(
-        self, tools: List["Tool"]
-    ) -> List["ChatCompletionToolParam"]:
-        return tools  # type: ignore
-
-    async def _create(self, messages: List["Message"], tools: List["Tool"]):
+    async def _create_chat(self, messages: List["Message"], tools: List["Tool"]):
         arguments: dict[str, Any] = {}
         if len(tools):
-            arguments["tools"] = await self._map_to_openai_tools(tools)
+            arguments["tools"] = await ToolMapper.to_openai_list(tools)
             arguments["tool_choice"] = "auto"
         return await self.openai.chat.completions.create(
-            messages=await self._map_to_openai_messages(messages),
+            messages=await MessageMapper.to_openai_list(messages[:-1]),
             model=self.model,
             temperature=self.temperature,
             stream=True,
+            timeout=120,
             **arguments
         )
-
-    async def _map_to_domain_tools(
-        self, delta_tools_calls: List["ChoiceDeltaToolCall"]
-    ) -> List["ToolCall"]:
-
-        def mapper(delta_tool_call: "ChoiceDeltaToolCall") -> "ToolCall":
-            function = delta_tool_call.function or _DefaultFunction
-            return ToolCall(
-                id=delta_tool_call.id or "unknow",
-                type="function",
-                function=FunctionCall(
-                    name=function.name or _DefaultFunction.name,
-                    arguments=function.arguments or _DefaultFunction.arguments,
-                ),
-            )
-
-        return list(map(mapper, delta_tools_calls))
 
     async def _collecte_tool_calls(
         self,
@@ -95,7 +61,7 @@ class OpenAI(AI):
         tools_calls: List["ChoiceDeltaToolCall"],
     ):
         for tools_call in tools_calls:
-            if tools_call.index >= len(delta_tools_calls):
+            if tools_call.index == None or tools_call.index >= len(delta_tools_calls):  # type: ignore
                 delta_tools_calls.append(tools_call)
             elif tools_call.function and tools_call.function.arguments:
                 delta_tools_calls[

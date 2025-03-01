@@ -12,9 +12,9 @@ class Actions:
         self.console = console
         self.packs = packs
     
-    def bind(self, app:'App'):
+    async def bind(self, app:'App'):
         for pack in self.packs:
-            pack.bind(app)
+            await pack.bind(app)
 
     async def execute(self, *, action: str, args: List[str]) -> None:
         for group in self.packs:

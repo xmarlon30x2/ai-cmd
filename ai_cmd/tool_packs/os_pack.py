@@ -1,5 +1,3 @@
-"""OSPack"""
-
 from subprocess import PIPE, run
 from typing import Any
 
@@ -13,12 +11,21 @@ class OSPack(ToolPack):
 
     async def tool_system(self, command: str) -> Any:
         """
-        Ejecuta comandos en la terminal del sistema operativo
+        Ejecuta comandos en la terminal del sistema operativo directamente el la PC del usuario
         args:
             command: Commando a ejecutar
         """
+        self.app.console.print(
+            f"[yellow]Ejecutando {command if len(command)<20 else command[:20]}[/yellow]"
+        )
         output = run(
-            command, shell=True, text=True, stdin=PIPE, stdout=PIPE, check=False
+            command,
+            shell=True,
+            text=True,
+            stdin=PIPE,
+            stdout=PIPE,
+            stderr=PIPE,
+            check=False,
         )
         return {
             "stdout": output.stdout,

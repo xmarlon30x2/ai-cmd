@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Dict, List, Literal, Optional, TypeAlias, TypedDict
+from dataclasses import dataclass, field
+from typing import Dict, List, Literal, Optional, TypeAlias
 
 
 @dataclass
@@ -11,56 +11,62 @@ class FunctionCall:
 @dataclass
 class ToolCall:
     id: str
-    type: Literal["function"]
     function: FunctionCall
+    type: Literal["function"] = field(default="function")
 
 
 @dataclass
 class ContentToken:
-    type: Literal["content"]
     content: str
+    type: Literal["content"] = field(default="content")
 
 
 @dataclass
-class ToolsToken:
-    type: Literal["tools"]
+class ToolsCallsToken:
     tools_calls: List[ToolCall]
+    type: Literal["tools_calls"] = field(default="tools_calls")
 
 
-class UserMessage(TypedDict):
-    role: Literal["user"]
+@dataclass
+class UserMessage:
     content: str
-    name: Optional[str]
+    name: Optional[str] = field(default=None)
+    role: Literal["user"] = field(default="user")
 
 
-class AssistantMessage(TypedDict):
-    role: Literal["assistant"]
-    content: str
-    tool_calls: Optional[str]
+@dataclass
+class AssistantMessage:
+    content: str = field(default="")
+    tool_calls: Optional[List[ToolCall]] = field(default=None)
+    role: Literal["assistant"] = field(default="assistant")
 
 
-class ToolMessage(TypedDict):
-    role: Literal["tool"]
+@dataclass
+class ToolMessage:
     name: Optional[str]
     content: str
     tool_call_id: str
+    role: Literal["tool"] = field(default="tool")
 
 
-class SystemMessage(TypedDict):
-    role: Literal["system"]
+@dataclass
+class SystemMessage:
     content: str
+    role: Literal["system"] = field(default="system")
 
 
-class FunctionDefinition(TypedDict):
+@dataclass
+class FunctionDefinition:
     name: str
     description: str
     parameters: Dict[str, object]
 
 
-class Tool(TypedDict):
-    type: Literal["function"]
+@dataclass
+class Tool:
     function: FunctionDefinition
+    type: Literal["function"] = field(default="function")
 
 
-Token: TypeAlias = ContentToken | ToolsToken
+Token: TypeAlias = ContentToken | ToolsCallsToken
 Message: TypeAlias = UserMessage | AssistantMessage | ToolMessage | SystemMessage
