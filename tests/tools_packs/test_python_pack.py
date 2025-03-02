@@ -1,6 +1,6 @@
 from unittest import IsolatedAsyncioTestCase, main
 
-from ai_cmd.tool_packs.python_pack import PythonPack
+from ai_cmd.packs.python_pack import PythonPack
 
 
 class TestPythonPack(IsolatedAsyncioTestCase):

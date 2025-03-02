@@ -1,7 +1,7 @@
 from unittest import IsolatedAsyncioTestCase, main
 from unittest.mock import MagicMock
 
-from ai_cmd.tool_packs.os_pack import OSPack
+from ai_cmd.packs.os_pack import OSPack
 
 
 class TestOSPack(IsolatedAsyncioTestCase):

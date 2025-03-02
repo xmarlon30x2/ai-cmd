@@ -2,7 +2,7 @@ import os
 import shutil
 from unittest import IsolatedAsyncioTestCase, main
 
-from ai_cmd.tool_packs.dirs_pack import DirsPack
+from ai_cmd.packs.dirs_pack import DirsPack
 
 
 class TestDirsPack(IsolatedAsyncioTestCase):

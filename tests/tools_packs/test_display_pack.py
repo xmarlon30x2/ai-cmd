@@ -2,7 +2,7 @@ import os
 from unittest import IsolatedAsyncioTestCase, main, skipIf
 from unittest.mock import patch
 
-from ai_cmd.tool_packs.display_pack import DisplayPack
+from ai_cmd.packs.display_pack import DisplayPack
 
 
 class TestDisplayPack(IsolatedAsyncioTestCase):

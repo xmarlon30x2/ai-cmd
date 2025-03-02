@@ -1,6 +1,6 @@
 from unittest import IsolatedAsyncioTestCase, main
 
-from ai_cmd.tool_packs.http_pack import HttpPack
+from ai_cmd.packs.http_pack import HttpPack
 
 
 class TestHttpPack(IsolatedAsyncioTestCase):

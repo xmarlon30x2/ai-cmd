@@ -1,0 +1,2 @@
+
+COMMAND_START:str = '/'

@@ -2,7 +2,7 @@ import os
 import shutil
 from unittest import IsolatedAsyncioTestCase, main
 
-from ai_cmd.tool_packs.files_pack import FilesPack
+from ai_cmd.packs.files_pack import FilesPack
 
 
 class TestFilesPack(IsolatedAsyncioTestCase):

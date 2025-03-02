@@ -1,7 +1,7 @@
 import os
 from unittest import IsolatedAsyncioTestCase, main, skipIf
 
-from ai_cmd.tool_packs.web_pack import WebPack
+from ai_cmd.packs.web_pack import WebPack
 
 
 class TestWebPack(IsolatedAsyncioTestCase):

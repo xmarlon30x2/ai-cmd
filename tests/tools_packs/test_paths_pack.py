@@ -1,7 +1,7 @@
 import os
 from unittest import IsolatedAsyncioTestCase, main
 
-from ai_cmd.tool_packs.paths_pack import PathsPack
+from ai_cmd.packs.paths_pack import PathsPack
 
 
 class TestPathsPack(IsolatedAsyncioTestCase):
