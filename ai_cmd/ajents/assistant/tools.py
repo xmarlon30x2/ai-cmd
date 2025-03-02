@@ -20,11 +20,11 @@ if TYPE_CHECKING:
 from ...tools.base import Tools
 
 
-def create_assistant_tools(controller: "Controller", settings: 'Settings', window: "Window") -> Tools:
+def create_assistant_tools(
+    controller: "Controller", settings: "Settings", window: "Window"
+) -> Tools:
     ai_reasoner_pack = create_ia_reasoner_pack(
-        controller=controller,
-        settings=settings,
-        window=window
+        controller=controller, settings=settings, window=window
     )
     return Tools(
         controller=controller,
@@ -39,6 +39,6 @@ def create_assistant_tools(controller: "Controller", settings: 'Settings', windo
             DisplayPack(controller=controller, window=window),
             TimePack(controller=controller, window=window),
             WebPack(controller=controller, window=window),
-            ai_reasoner_pack
+            ai_reasoner_pack,
         ],
     )

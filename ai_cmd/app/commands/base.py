@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from prompt_toolkit import print_formatted_text
+from prompt_toolkit import HTML, print_formatted_text
 
 if TYPE_CHECKING:
     from ...controller.base import Controller
@@ -19,6 +19,8 @@ class Commands:
 
     def join(self, app: "App"):
         self.app = app
+        for command_pack in self.command_packs:
+            command_pack.join(app=app)
 
     async def execute(self, *, command: str, args: list[str]) -> None:
         for command_pack in self.command_packs:
@@ -27,4 +29,4 @@ class Commands:
         await self.not_found(command=command)
 
     async def not_found(self, *, command: str):
-        print_formatted_text(f'<red>No se encontro el commando "{command}"</red>')
+        print_formatted_text(HTML(f'<red>No se encontro el commando "{command}"</red>'))

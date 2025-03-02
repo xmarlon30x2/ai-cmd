@@ -31,8 +31,6 @@ class DocstringParser:
     @classmethod
     def _parse_standard(cls, doc: str) -> Tuple[str, dict[str, str]]:
         lines = [line.strip() for line in doc.split("\n") if line.strip()]
-        if not lines:
-            return "", {}
 
         description: list[str] = []
         current_section: str | None = None

@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     def load_env(cls) -> dict[str, Any]:
         try:
             load_dotenv(ENV_FILE)
-            api_key = getenv("apy_key")
+            api_key = getenv("api_key")
             api_key_reasoner = getenv("api_key_reasoner")
             model = getenv("model")
             base_url = getenv("base_url")
@@ -74,6 +74,7 @@ class Settings(BaseSettings):
 
     def save(self):
         data = self.model_dump()
+        data.pop("instance", None)
         content = "\n".join([f"{key} = {value}" for (key, value) in data.items()])
         with open(ENV_FILE, "w", encoding="utf-8") as file:
             file.write(content)

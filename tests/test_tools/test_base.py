@@ -1,4 +1,3 @@
-import unittest
 from unittest.async_case import IsolatedAsyncioTestCase
 from unittest.mock import AsyncMock, MagicMock
 
@@ -97,7 +96,3 @@ class TestTools(IsolatedAsyncioTestCase):
         self.assertEqual(len(list), 2)
         self.assertEqual(list[0], {"name": "tool1"})
         self.assertEqual(list[1], {"name": "tool2"})
-
-
-if __name__ == "__main__":
-    unittest.main()

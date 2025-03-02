@@ -83,18 +83,20 @@ async def render_os_shell_tool_message(
         text = f"<red>❌ Error <b>{name}</b>: {error}</red>"
         container = Window(FormattedTextControl(HTML(text)), wrap_lines=True)
     else:
-        command = parameters.get('command')
+        command = parameters.get("command")
         stdout = response.get("stdout", "")
         stderr = response.get("stderr", "")
         returncode = response.get("returncode", "")
-        text_command = f'Comando <b>{command}</b>'
+        text_command = f"Comando <b>{command}</b>"
         text_stdout = f"<gray>{stdout}</gray>"
         text_stderr = f"<red>{stderr}</red>"
         text_returncode = f"<orange>{returncode}</orange>"
-        container = HSplit([
-            Window(to_formated_text_controll(text_command)),
-            Window(to_formated_text_controll(text_stdout)),
-            Window(to_formated_text_controll(text_stderr)),
-            Window(to_formated_text_controll(text_returncode)),
-        ])
+        container = HSplit(
+            [
+                Window(to_formated_text_controll(text_command)),
+                Window(to_formated_text_controll(text_stdout)),
+                Window(to_formated_text_controll(text_stderr)),
+                Window(to_formated_text_controll(text_returncode)),
+            ]
+        )
     return container

@@ -1,4 +1,3 @@
-import unittest
 from typing import Any, Dict
 from unittest.async_case import IsolatedAsyncioTestCase
 from unittest.mock import MagicMock
@@ -146,7 +145,3 @@ class TestToolPack(IsolatedAsyncioTestCase):
         tool_pack = ToolPack(controller, window=window)
         await tool_pack.reset()
         self.assertTrue(True)  # Just to check that it runs without errors
-
-
-if __name__ == "__main__":
-    unittest.main()

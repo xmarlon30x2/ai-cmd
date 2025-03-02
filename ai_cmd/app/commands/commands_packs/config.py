@@ -1,6 +1,6 @@
 from typing import Optional
 
-from prompt_toolkit import print_formatted_text
+from prompt_toolkit import HTML, print_formatted_text
 
 from ..command_pack import CommandPack
 
@@ -37,21 +37,29 @@ class IAConfigPack(CommandPack):
             or temperature_reasoner
         ):
             self.app.settings.save()
-            print_formatted_text("<green>Configuracion guardad con exito</green>")
+            print_formatted_text(
+                HTML("<green>Configuracion guardado con exito</green>")
+            )
         else:
-            print_formatted_text("Configuracion del modelo base")
-            print_formatted_text(f" - model: <b>{self.app.settings.model}</b>")
-            print_formatted_text(f" - base_url: <b>{self.app.settings.base_url}</b>")
+            print_formatted_text(HTML("<gray>Configuracion del modelo base</gray>"))
+            print_formatted_text(HTML(f" - model: <b>{self.app.settings.model}</b>"))
             print_formatted_text(
-                f" - temperature: <b>{self.app.settings.temperature}</b>"
-            )
-            print_formatted_text("Configuracion del modelo rasonador")
-            print_formatted_text(f" - model: <b>{self.app.settings.model_reasoner}</b>")
-            print_formatted_text(
-                f" - base_url: <b>{self.app.settings.model_reasoner}</b>"
+                HTML(f" - base_url: <b>{self.app.settings.base_url}</b>")
             )
             print_formatted_text(
-                f" - temperature: <b>{self.app.settings.model_reasoner}</b>"
+                HTML(f" - temperature: <b>{self.app.settings.temperature}</b>")
+            )
+            print_formatted_text(
+                HTML("<gray>Configuracion del modelo rasonador</gray>")
+            )
+            print_formatted_text(
+                HTML(f" - model: <b>{self.app.settings.model_reasoner}</b>")
+            )
+            print_formatted_text(
+                HTML(f" - base_url: <b>{self.app.settings.model_reasoner}</b>")
+            )
+            print_formatted_text(
+                HTML(f" - temperature: <b>{self.app.settings.model_reasoner}</b>")
             )
 
     async def do_api_key(self):

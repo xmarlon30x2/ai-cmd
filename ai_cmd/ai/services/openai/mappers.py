@@ -1,6 +1,8 @@
 from asyncio import gather
 from typing import TYPE_CHECKING
 
+from ....tools.types import FunctionCall, Tool, ToolCall
+
 if TYPE_CHECKING:
     from openai.types.chat.chat_completion_assistant_message_param import (
         ChatCompletionAssistantMessageParam,
@@ -24,7 +26,6 @@ if TYPE_CHECKING:
     )
 
     from ....core.history.types import Message
-    from ....tools.types import FunctionCall, Tool, ToolCall
 
 
 DEFAULT_ID = "unknow"

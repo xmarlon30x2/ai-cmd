@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from traceback import format_exception
 from typing import TYPE_CHECKING
 
-from prompt_toolkit import PromptSession, print_formatted_text
+from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.formatted_text.pygments import PygmentsTokens
 from prompt_toolkit.shortcuts import PromptSession, print_formatted_text
 from prompt_toolkit.styles import style_from_pygments_cls
@@ -14,7 +14,6 @@ from rich.live import Live
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.style import Style
-
 
 from ..ai.exceptions import ConnectionError
 from ..app.renders.tool_messages import (
@@ -43,10 +42,10 @@ from .renders.tool_calls import (
 if TYPE_CHECKING:
     from ..controller.base import Controller
     from ..core.base import Core
+    from ..settings.base import Settings
     from ..tools.types import ToolCall
     from ..window.base import Window
     from .commands.base import Commands
-    from ..settings.base import Settings
 
 
 @dataclass(kw_only=True)
@@ -136,7 +135,7 @@ class App:
         try:
             raise event.error
         except ConnectionError:
-            print_formatted_text("<red>Ha ocurrido en la conexion</red>")
+            print_formatted_text(HTML("<red>Ha ocurrido en la conexion</red>"))
         except Exception:
             await self.print_exception(error=event.error)
 

@@ -1,7 +1,7 @@
-import sys
+from typing import Any, Callable, Coroutine
 
-from typer import Typer
 
+from ....utils import wrapped_sync
 from ...exceptions import AppClose
 from ..command_pack import CommandPack
 
@@ -13,8 +13,10 @@ class SystemPack(CommandPack):
 
     async def do_help(self):
         """Muestra ayuda sobre los comandos"""
-        typer = Typer()
-        for command_pack in self.app.commands.command_packs:
-            await command_pack.subscribe(typer)
-        sys.argv = ["--help"]
-        typer(sys.argv)
+        command_register: dict[
+            str, Callable[[str], None | Coroutine[Any, Any, None]]
+        ] = {}
+        for pack in self.app.commands.command_packs:
+            await pack.subscribe(command_register=command_register)
+        for command in command_register.values():
+            await wrapped_sync(command, "--help")

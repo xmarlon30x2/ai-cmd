@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING
 
-# from ...ai.services.openai.base import OpenAI
-from ...ai.services.mock import MockAI
+from ...ai.services.openai.base import OpenAI
 from ...core.base import Core
 from ...core.history.base import History
 from ...core.history.types import SystemMessage
@@ -17,7 +16,7 @@ if TYPE_CHECKING:
 def create_assistant_core(
     controller: "Controller", settings: "Settings", window: "Window"
 ) -> "Core":
-    ai = MockAI(
+    ai = OpenAI(
         api_key=settings.api_key,
         base_url=settings.base_url,
         model=settings.model,

@@ -1,2 +1,1 @@
-
-COMMAND_START:str = '/'
+COMMAND_START: str = "/"
