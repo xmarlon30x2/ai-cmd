@@ -13,6 +13,7 @@ class ToolPack:
     """A pack of tools."""
 
     name: str = "tool"
+    custom_descs: dict[str, str] = {}
 
     def __init__(self, controller: "Controller", window: "Window"):
         self.controller = controller
@@ -93,7 +94,7 @@ class ToolPack:
             if isinstance(element, Callable):
                 name = f"{self.name}_{key}"
                 function_schema = FunctionSchemaGenerator.generate(
-                    function=element, custom_name=name  # type: ignore
+                    function=element, custom_name=name, custom_desc=self.custom_descs.get(name, None)  # type: ignore
                 )
                 tools.append(Tool(function=function_schema))
         return tools

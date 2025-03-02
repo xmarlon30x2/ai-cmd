@@ -1,3 +1,7 @@
+from contextlib import redirect_stdout
+from io import StringIO
+from traceback import format_exception
+
 from ..tool_pack import ToolPack
 
 
@@ -13,4 +17,13 @@ class AppPack(ToolPack):
         """
         globals_ = globals()
         globals_["ROOT"] = self.controller
-        exec(code, globals_)
+        stdout = StringIO()
+        try:
+            with redirect_stdout(stdout):
+                exec(code, globals_)
+        except Exception as exc:
+            return {
+                "stdout": stdout.getvalue(),
+                "traceback": "\n".join(format_exception(exc)),
+            }
+        return {"stdout": stdout.getvalue()}

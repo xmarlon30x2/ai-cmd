@@ -45,11 +45,11 @@ class WebPack(ToolPack):
             dict: Un diccionario con una lista de enlaces en la clave 'links' o un mensaje de error en la clave 'error'.
         """
         try:
-            import requests  # type: ignore
+            import requests
         except ImportError:
             return {"error": "El módulo requests no está instalado."}
         try:
-            from bs4 import BeautifulSoup  # type: ignore
+            from bs4 import BeautifulSoup
         except ImportError:
             return {"error": "El módulo beautifulsoup4 no está instalado."}
         try:
@@ -59,4 +59,33 @@ class WebPack(ToolPack):
             links = [a["href"] for a in soup.find_all("a", href=True)]
             return {"links": links}
         except requests.exceptions.RequestException as e:
+            return {"error": str(e)}
+
+    async def tool_read(self, url: str):
+        """
+        Lee el contenido de una página web y devuelve el texto.
+
+        Args:
+            url (str): La URL de la página web.
+
+        Returns:
+            dict: Un diccionario con el contenido de la página en la clave 'content' o un mensaje de error en la clave 'error'.
+        """
+        try:
+            import requests
+        except ImportError:
+            return {"error": "El módulo requests no está instalado."}
+        try:
+            from bs4 import BeautifulSoup
+        except ImportError:
+            return {"error": "El módulo beautifulsoup4 no está instalado."}
+        try:
+            response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, "html.parser")
+            text = soup.get_text()
+            return {"content": text}
+        except requests.exceptions.RequestException as e:
+            return {"error": str(e)}
+        except Exception as e:
             return {"error": str(e)}

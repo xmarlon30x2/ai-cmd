@@ -1,12 +1,16 @@
 from asyncio import CancelledError
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Optional
 
-from .events import (CoreGenerationEndEvent, CoreGenerationErrorEvent,
-                     CoreGenerationRecvContentTokenEvent,
-                     CoreGenerationRecvToolsCallsTokenEvent,
-                     CoreGenerationStartEvent, CoreResetEvent,
-                     CoreToolsLoadingEvent)
+from .events import (
+    CoreGenerationEndEvent,
+    CoreGenerationErrorEvent,
+    CoreGenerationRecvContentTokenEvent,
+    CoreGenerationRecvToolsCallsTokenEvent,
+    CoreGenerationStartEvent,
+    CoreResetEvent,
+    CoreToolsLoadingEvent,
+)
 from .history.types import AssistantMessage, UserMessage
 
 if TYPE_CHECKING:
@@ -24,7 +28,7 @@ class Core:
     controller: "Controller"
     ai: "AI"
     history: "History"
-    tools: Optional["Tools"]
+    tools: Optional["Tools"] = field(default=None)
 
     async def start_generation(self, content: str, name: Optional[str] = None) -> None:
         message = UserMessage(content=content, name=name)
@@ -132,6 +136,7 @@ class Core:
         if self.tools:
             await self.tools.reset()
         await self.history.reset()
+
 
 """
 with Progress(console=self.console) as progress:

@@ -1,6 +1,7 @@
 {
     "python.analysis.typeCheckingMode": "strict",
     "python.testing.unittestArgs": [
+        "discover",
         "-v",
         "-s",
         "./tests",

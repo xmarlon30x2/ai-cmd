@@ -1,5 +1,5 @@
 ### en dessarrollo ###
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import requests
 
@@ -13,34 +13,35 @@ class HttpPack(ToolPack):
         self,
         url: str,
         method: str = "get",
-        data: str = None,  # type: ignore
+        data: Optional[str] = None,
+        timeout: float = 5,
     ) -> Dict[str, Any]:
         """
         Args:
             url (str): La URL a la que hacer la petición.
             method (str): El método HTTP a utilizar (get, post, put, delete). Por defecto, 'get'.
             data (str): Un json de datos a enviar con la petición (para métodos post y put). Por defecto, None.
-
+            timeout (float): Tiempo de espera
         Returns:
             dict: Un diccionario con el código de estado HTTP en la clave 'status_code' y el contenido de la respuesta en la clave 'content'.
                   Si ocurre un error, devuelve un diccionario con un mensaje de error en la clave 'error'.
         """
-        # headers: dict[str, str] = None,  # type: ignore
-        # headers (dict): Un diccionario de cabeceras HTTP a enviar con la petición. Por defecto, None.
         try:
             method = method.lower()
-            # if headers is None:  # type: ignore
-            #    headers = {"User-Agent": "Mozilla/5.0"}
             headers = {"User-Agent": "Mozilla/5.0"}
 
             if method == "get":
-                response = requests.get(url, headers=headers)
+                response = requests.get(url, headers=headers, timeout=timeout)
             elif method == "post":
-                response = requests.post(url, headers=headers, data=data)
+                response = requests.post(
+                    url, headers=headers, data=data, timeout=timeout
+                )
             elif method == "put":
-                response = requests.put(url, headers=headers, data=data)
+                response = requests.put(
+                    url, headers=headers, data=data, timeout=timeout
+                )
             elif method == "delete":
-                response = requests.delete(url, headers=headers)
+                response = requests.delete(url, headers=headers, timeout=timeout)
             else:
                 return {"error": f"Unsupported method: {method}"}
 
@@ -65,7 +66,10 @@ class HttpPack(ToolPack):
             dict: Un diccionario con el código de estado HTTP en la clave 'status_code' o un mensaje de error en la clave 'error'.
         """
         try:
-            response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+            response = requests.get(
+                url, headers={"User-Agent": "Mozilla/5.0"}, timeout=5
+            )
+            response.raise_for_status()
             status_code = response.status_code
             return {"status_code": status_code}
         except requests.exceptions.RequestException as e:

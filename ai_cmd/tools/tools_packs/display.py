@@ -23,15 +23,15 @@ class DisplayPack(ToolPack):
                   Si ocurre un error, devuelve {"success": False, "error": mensaje de error}.
         """
         try:
-            from PIL import ImageGrab  # type: ignore
+            import pyscreenshot as ImageGrab  # type: ignore
         except ImportError:
             return {
                 "success": False,
-                "error": "PIL (Pillow) is required to use this tool. Please install it with 'pip install Pillow'",
+                "error": "pyscreenshot is required to use this tool. Please install it with 'pip install pyscreenshot'",
             }
         try:
-            screenshot = ImageGrab.grab()  # type: ignore
-            screenshot.save(filename)  # type: ignore
+            im = ImageGrab.grab()  # type: ignore
+            im.save(filename)  # type: ignore
             return {"success": True, "filename": filename}
         except Exception as e:
             return {"success": False, "error": str(e)}

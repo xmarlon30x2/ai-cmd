@@ -1,11 +1,11 @@
 from typing import TYPE_CHECKING, Any
 
 from ...tool_pack import ToolPack
-from .executors import PythonProgram
 
 if TYPE_CHECKING:
     from ....controller.base import Controller
     from ....window.base import Window
+    from .executors import PythonProgram
 
 
 class PythonPack(ToolPack):
@@ -22,6 +22,10 @@ class PythonPack(ToolPack):
             code: Codigo python a ejecutar
             description: Descripcion breve del codigo
         """
+        try:
+            from .executors import PythonProgram
+        except ImportError:
+            return {"error": "El módulo pexpect no está instalado."}
         try:
             program = PythonProgram(code=code)
             program.start()
@@ -45,7 +49,8 @@ class PythonPack(ToolPack):
         """
         Interactua con un codigo python en ejecucion, enviando datos al stdin,
         espera a que el proceso termine y lee datos del stdout y stderr.
-        args:
+
+        Args:
             id: La id del codigo en ejecucion
             input: El texto que se enviara al stdin, es opcional.
             timeout: El tiempo maximo de espera para que el proceso termine, utiliza 0 para indicar tiempo indefinido

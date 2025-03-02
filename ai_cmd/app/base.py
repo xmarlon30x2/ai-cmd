@@ -15,6 +15,7 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.style import Style
 
+
 from ..ai.exceptions import ConnectionError
 from ..app.renders.tool_messages import (
     render_dirs_list_tool_message,
@@ -45,6 +46,7 @@ if TYPE_CHECKING:
     from ..tools.types import ToolCall
     from ..window.base import Window
     from .commands.base import Commands
+    from ..settings.base import Settings
 
 
 @dataclass(kw_only=True)
@@ -53,6 +55,7 @@ class App:
     core: "Core"
     commands: "Commands"
     window: "Window"
+    settings: "Settings"
     prompt: str = field(default="+ ", init=False)
 
     task: Task[None] | None = None

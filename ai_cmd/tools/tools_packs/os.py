@@ -11,9 +11,19 @@ class OSPack(ToolPack):
 
     async def tool_shell(self, command: str) -> Any:
         """
-        Ejecuta comandos en la terminal del sistema operativo directamente el la PC del usuario
-        args:
-            command: Commando a ejecutar
+        Ejecuta un comando en la terminal del sistema operativo, permitiendo la interacción directa con el sistema.
+
+        Esta función toma una cadena de texto que representa un comando y la ejecuta directamente en el sistema operativo subyacente.
+        Esto permite acceder a funcionalidades del sistema y ejecutar programas externos.
+
+        Args:
+            command: El comando a ejecutar como una cadena de texto.
+
+        Returns:
+            Un diccionario que contiene:
+                stdout: La salida estándar del comando resultante de la ejecución.
+                stderr: La salida de error estándar resultante de la ejecución.
+                returncode: El código de retorno del comando.
         """
         output = run(
             command,
