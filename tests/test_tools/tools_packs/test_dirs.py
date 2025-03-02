@@ -1,22 +1,29 @@
 import os
 import shutil
-from unittest import IsolatedAsyncioTestCase, main
+from unittest import main
+from unittest.async_case import IsolatedAsyncioTestCase
+from unittest.mock import MagicMock
 
-from ai_cmd.packs.dirs_pack import DirsPack
+from ai_cmd.tools.tool_pack import ToolPack
+from ai_cmd.tools.tools_packs.dirs.base import DirsPack
 
 
 class TestDirsPack(IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self):
-        self.dirs_pack = DirsPack()
+        self.dirs_pack = DirsPack(controller=MagicMock(), window=MagicMock())
         self.test_dir = "test_dir"
         self.test_file = os.path.join(self.test_dir, "test_file.txt")
         os.makedirs(self.test_dir, exist_ok=True)
         with open(self.test_file, "w") as f:
             f.write("test content")
+        return super().asyncSetUp()
 
     async def asyncTearDown(self):
         shutil.rmtree(self.test_dir)
+
+    async def test_is_tool_pack(self):
+        self.assertIsInstance(self.dirs_pack, ToolPack)
 
     async def test_tool_list(self):
         result = await self.dirs_pack.tool_list(path=self.test_dir)
@@ -28,8 +35,10 @@ class TestDirsPack(IsolatedAsyncioTestCase):
     async def test_tool_create(self):
         new_dir = os.path.join(self.test_dir, "new_dir")
         result = await self.dirs_pack.tool_create(path=new_dir)
-        self.assertIn("message", result)
-        self.assertEqual(result["message"], f"Directory {new_dir} created successfully")
+        self.assertIn("created", result)
+        self.assertEqual(result["created"], True)
+        self.assertIn("path", result)
+        self.assertEqual(result["path"], new_dir)
         self.assertTrue(os.path.exists(new_dir))
 
     async def test_tool_delete(self):

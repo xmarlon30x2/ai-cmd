@@ -346,7 +346,7 @@ class FilesPack(ToolPack):
 
     async def tool_search(
         self, path: str, query: str, encoding: Optional[str] = "utf-8"
-    ) -> Dict[str, Union[List[Dict[str, Union[int, str]]], str]]:
+    ) -> Dict[str, Any]:
         """
         Busca una cadena dentro de un archivo y devuelve las líneas que coinciden junto con su número de línea.
 

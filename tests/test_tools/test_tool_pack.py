@@ -1,49 +1,46 @@
 import unittest
-from typing import Any, Dict, list
-from unittest.mock import AsyncMock, MagicMock
+from typing import Any, Dict
+from unittest.async_case import IsolatedAsyncioTestCase
+from unittest.mock import MagicMock
 
-from .tool_handler import ToolHandler
-from .tool_pack import ToolPack
+from ai_cmd.tools.tool_pack import ToolPack
+from ai_cmd.tools.types import FunctionCall, Tool, ToolCall
 
 
-class TestToolPack(unittest.TestCase):
-
-    async def test_bind(self):
-        tool_pack = ToolPack()
-        app = MagicMock()
-        await tool_pack.bind(app)
-        self.assertEqual(tool_pack.app, app)
-
+class TestToolPack(IsolatedAsyncioTestCase):
     async def test_collect_tools(self):
+
         class MyToolPack(ToolPack):
+            name: str = "my_tool_pack"
+
             async def tool_my_tool(self, arg1: int, arg2: str) -> Dict[str, Any]:
                 """My Tool"""
                 return {"result": arg1 + len(arg2)}
 
-        tool_pack = MyToolPack()
-        app = MagicMock()
-        await tool_pack.bind(app)
-        tools = tool_pack._tools
-        self.assertIn("my_tool", tools)
+        controller = MagicMock()
+        window = MagicMock()
+        tool_pack = MyToolPack(controller, window=window)
+        tools = getattr(tool_pack, "_tools")
         self.assertEqual(len(tools), 1)
-        tool = tools["my_tool"]
-        self.assertIn("callable", tool)
-        self.assertIn("spec", tool)
+        tool = tools[0]
+        self.assertIsInstance(tool, Tool)
+        tool: Tool
+        self.assertEqual(tool.function.name, "my_tool_pack_my_tool")
+        self.assertEqual(tool.function.description, "My Tool")
+        self.assertEqual(tool.function.callable, tool_pack.tool_my_tool)
 
-    async def test_specs(self):
+    async def test_tools(self):
         class MyToolPack(ToolPack):
             async def tool_my_tool(self, arg1: int, arg2: str) -> Dict[str, Any]:
                 """My Tool"""
                 return {"result": arg1 + len(arg2)}
 
-        tool_pack = MyToolPack()
-        app = MagicMock()
-        await tool_pack.bind(app)
-        specs = await tool_pack.specs()
-        self.assertEqual(len(specs), 1)
-        self.assertIn("name", specs[0]["function"])
-        self.assertIn("description", specs[0]["function"])
-        self.assertIn("parameters", specs[0]["function"])
+        controller = MagicMock()
+        window = MagicMock()
+        tool_pack = MyToolPack(controller, window=window)
+        tools: list[Tool] = await tool_pack.tools()
+        self.assertEqual(len(tools), 1)
+        self.assertIsInstance(tools[0], Tool)
 
     async def test_exists(self):
         class MyToolPack(ToolPack):
@@ -51,10 +48,10 @@ class TestToolPack(unittest.TestCase):
                 """My Tool"""
                 return {"result": arg1 + len(arg2)}
 
-        tool_pack = MyToolPack()
-        app = MagicMock()
-        await tool_pack.bind(app)
-        self.assertTrue(await tool_pack.exists("my_tool"))
+        controller = MagicMock()
+        window = MagicMock()
+        tool_pack = MyToolPack(controller, window=window)
+        self.assertTrue(await tool_pack.exists("tool_my_tool"))
         self.assertFalse(await tool_pack.exists("non_existent_tool"))
 
     async def test_execute(self):
@@ -63,12 +60,15 @@ class TestToolPack(unittest.TestCase):
                 """My Tool"""
                 return {"result": arg1 + len(arg2)}
 
-        tool_pack = MyToolPack()
-        app = MagicMock()
-        await tool_pack.bind(app)
-        tool_call = {
-            "function": {"name": "my_tool", "arguments": '{"arg1": 10, "arg2": "test"}'}
-        }
+        controller = MagicMock()
+        window = MagicMock()
+        tool_pack = MyToolPack(controller, window=window)
+        tool_call = ToolCall(
+            id="none",
+            function=FunctionCall(
+                name="tool_my_tool", arguments='{"arg1": 10, "arg2": "test"}'
+            ),
+        )
         result = await tool_pack.execute(tool_call)
         self.assertEqual(result, {"result": 14})
 
@@ -78,12 +78,15 @@ class TestToolPack(unittest.TestCase):
                 """My Tool"""
                 return {"result": arg1 + len(arg2)}
 
-        tool_pack = MyToolPack()
-        app = MagicMock()
-        await tool_pack.bind(app)
-        tool_call = {
-            "function": {"name": "my_tool", "arguments": '{"arg1": 10, "arg2": test}'}
-        }
+        controller = MagicMock()
+        window = MagicMock()
+        tool_pack = MyToolPack(controller, window=window)
+        tool_call = ToolCall(
+            id="none",
+            function=FunctionCall(
+                name="tool_my_tool", arguments='{"arg1": 10, "arg2": "test"'
+            ),
+        )
         result = await tool_pack.execute(tool_call)
         self.assertIn("error", result)
 
@@ -93,10 +96,13 @@ class TestToolPack(unittest.TestCase):
                 """My Tool"""
                 return {"result": arg1 + len(arg2)}
 
-        tool_pack = MyToolPack()
-        app = MagicMock()
-        await tool_pack.bind(app)
-        tool_call = {"function": {"name": "my_tool", "arguments": '{"arg1": 10}'}}
+        controller = MagicMock()
+        window = MagicMock()
+        tool_pack = MyToolPack(controller, window=window)
+        tool_call = ToolCall(
+            id="none",
+            function=FunctionCall(name="tool_my_tool", arguments='{"arg1": 10}'),
+        )
         result = await tool_pack.execute(tool_call)
         self.assertIn("error", result)
 
@@ -106,15 +112,13 @@ class TestToolPack(unittest.TestCase):
                 """My Tool"""
                 return {"result": arg1 + len(arg2)}
 
-        tool_pack = MyToolPack()
-        app = MagicMock()
-        await tool_pack.bind(app)
-        tool_call = {
-            "function": {
-                "name": "other_tool",
-                "arguments": '{"arg1": 10, "arg2": "test"}',
-            }
-        }
+        controller = MagicMock()
+        window = MagicMock()
+        tool_pack = MyToolPack(controller, window=window)
+        tool_call = ToolCall(
+            id="none",
+            function=FunctionCall(name="tool_other_tool", arguments='{"arg1": 10}'),
+        )
         result = await tool_pack.execute(tool_call)
         self.assertIn("error", result)
 
@@ -124,17 +128,22 @@ class TestToolPack(unittest.TestCase):
                 """My Tool"""
                 raise ValueError("Something went wrong")
 
-        tool_pack = MyToolPack()
-        app = MagicMock()
-        await tool_pack.bind(app)
-        tool_call = {
-            "function": {"name": "my_tool", "arguments": '{"arg1": 10, "arg2": "test"}'}
-        }
+        controller = MagicMock()
+        window = MagicMock()
+        tool_pack = MyToolPack(controller, window=window)
+        tool_call = ToolCall(
+            id="test-id",
+            function=FunctionCall(
+                name="my_tool", arguments='{"arg1": 10, "arg2": "test"}'
+            ),
+        )
         result = await tool_pack.execute(tool_call)
         self.assertIn("error", result)
 
-    async def test_reset(self):
-        tool_pack = ToolPack()
+    async def test_reset_without_errors(self):
+        controller = MagicMock()
+        window = MagicMock()
+        tool_pack = ToolPack(controller, window=window)
         await tool_pack.reset()
         self.assertTrue(True)  # Just to check that it runs without errors
 

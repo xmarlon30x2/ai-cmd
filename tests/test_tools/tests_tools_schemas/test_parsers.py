@@ -1,6 +1,6 @@
 import unittest
 
-from ai_cmd.tools_schema.parsers import DocstringParser
+from ai_cmd.tools.schemas.parsers import DocstringParser
 
 
 class TestDocstringParser(unittest.TestCase):

@@ -1,14 +1,14 @@
 import os
 from unittest import IsolatedAsyncioTestCase, main, skipIf
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
-from ai_cmd.packs.display_pack import DisplayPack
+from ai_cmd.tools.tools_packs.display import DisplayPack
 
 
 class TestDisplayPack(IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self):
-        self.display_pack = DisplayPack()
+        self.display_pack = DisplayPack(controller=MagicMock(), window=MagicMock())
 
     @skipIf(
         os.system("pip show Pillow > /dev/null 2>&1") != 0, "Pillow is not installed"
@@ -42,9 +42,9 @@ class TestDisplayPack(IsolatedAsyncioTestCase):
     @skipIf(
         os.system("pip show pynput > /dev/null 2>&1") != 0, "pynput is not installed"
     )
-    async def test_tool_write_import_error(self):
+    async def test_tool_keyboard_write_import_error(self):
         with patch("pynput.keyboard.Controller", new=None):
-            result = await self.display_pack.tool_write(text="test text")
+            result = await self.display_pack.tool_keyboard_write(text="test text")
             self.assertIn("error", result)
             self.assertIn("pynput is required", result["error"])
 
